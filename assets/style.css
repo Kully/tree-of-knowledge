@@ -2,11 +2,11 @@ body {
 	background-color: #222;
 }
 
-.app-canvas {
-	outline: 2px solid #FA5560;
-}
-
-.lasso-button {
+button {
 	font-size: 20px;
 	display: block;
+}
+
+.app-canvas {
+	outline: 2px solid #FA5560;
 }
