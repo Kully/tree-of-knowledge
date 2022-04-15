@@ -3,4 +3,6 @@
 - [x] Create labels that hover over the nodes
 - [ ] Enable Scroll Wheel for Zooming
 - [ ] Enable Mouse Panning
-- [ ] Add clustering
+- [ ] Add the ability to draw lines between nodes
+- [ ] Add clustering capabilities
+
