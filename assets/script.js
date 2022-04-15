@@ -7,16 +7,7 @@ const CANVAS_COLOR = "#222";
 const NODE_COLORS = {
 	default: "#FA5560",
 	highlighted: "#FFE400",
-	invalid: "#FA5560",
-	label: "white"
-}
-
-const STATE = {
-	is_lasso: false,
-	is_dragging: false,
-	dragging_node_idx: -1,
-	lasso_start: -1,
-	lasso_end: -1,
+	label: "white",
 }
 
 const CAMERA = {
@@ -26,6 +17,13 @@ const CAMERA = {
 	height: CANVAS_HEIGHT,
 }
 
+const STATE = {
+	is_lasso: false,
+	is_dragging: false,
+	dragging_node_idx: -1,
+	lasso_start: -1,
+	lasso_end: -1,
+}
 
 const NODES = [
 	{
@@ -50,11 +48,6 @@ const NODES = [
 		y: CANVAS_HEIGHT / 2 + 70,
 	},
 ];
-
-
-/*
-	Functions
-*/
 
 function clear(canvas)
 {
@@ -142,15 +135,6 @@ const ctx = canvas.getContext("2d");
 canvas.height = CANVAS_HEIGHT;
 canvas.width = CANVAS_WIDTH;
 
-clear(canvas);
-for(node of NODES)
-	draw_node(ctx, node);
-
-
-/*
-	Event Handlers
-*/
-
 canvas.addEventListener("mousedown", function(e) {
 
 	if(STATE["is_lasso"] === false)
@@ -217,16 +201,9 @@ canvas.addEventListener("mousemove", function(e) {
 
 canvas.addEventListener("mouseup", function(e) {
 	STATE["dragging_node_idx"] = -1;
-	
-	// disable lasso mode
-	STATE["is_lasso"] = false;
-	canvas.style.cursor = "default";
 })
 
-
-// lasso_button.addEventListener("click", function(e) {
-// 	canvas.style.cursor = "crosshair";
-// 	STATE["is_lasso"] = true;
-// 	STATE["lasso_start"] = -1;
-// 	STATE["lasso_end"] = -1;
-// })
+// draw the initial layout of nodes
+clear(canvas);
+for(node of NODES)
+	draw_node(ctx, node);
