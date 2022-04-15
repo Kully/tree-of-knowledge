@@ -5,9 +5,10 @@ const CANVAS_HEIGHT = 600;
 const STROKE_COLOR = "#ddd";
 const CANVAS_COLOR = "#222";
 const NODE_COLORS = {
-	default: "#555",
+	default: "#FA5560",
 	highlighted: "#FFE400",
 	invalid: "#FA5560",
+	label: "white"
 }
 
 const STATE = {
@@ -18,25 +19,35 @@ const STATE = {
 	lasso_end: -1,
 }
 
+const CAMERA = {
+	x: 0,
+	y: 0,
+	width: CANVAS_WIDTH,
+	height: CANVAS_HEIGHT,
+}
+
 
 const NODES = [
 	{
-		x: 230,
-		y: 450,
+		id: 0,
+		label: "Point A",
 		radius: 10,
-		name: "",
+		x: CANVAS_WIDTH / 2,
+		y: CANVAS_HEIGHT / 2,
 	},
 	{
-		x: 110,
-		y: 90,
+		id: 1,
+		label: "Point B",
 		radius: 10,
-		name: "",
+		x: CANVAS_WIDTH / 2 + 80,
+		y: CANVAS_HEIGHT / 2 - 14,
 	},
 	{
-		x: 20,
-		y: 80,
+		id: 2,
+		label: "Point C",
 		radius: 10,
-		name: "",
+		x: CANVAS_WIDTH / 2 - 36,
+		y: CANVAS_HEIGHT / 2 + 70,
 	},
 ];
 
@@ -99,9 +110,22 @@ function draw_node(ctx, node)
  	{
  		node_color = NODE_COLORS["default"];
 	}
-
 	ctx.fillStyle = node_color;
 	ctx.fill();
+
+	// place text in relation to the node
+	let y_text_shift = 5;
+	if(node["label"] !== "")
+	{
+		ctx.font = "14px Bodoni";
+		ctx.textAlign = "center";
+		ctx.fillStyle = NODE_COLORS["label"];
+		ctx.fillText(
+			node["label"],
+			node["x"],
+			node["y"] - node["radius"] - y_text_shift
+		);
+	}
 }
 
 
@@ -121,7 +145,6 @@ canvas.width = CANVAS_WIDTH;
 clear(canvas);
 for(node of NODES)
 	draw_node(ctx, node);
-
 
 
 /*
@@ -201,9 +224,9 @@ canvas.addEventListener("mouseup", function(e) {
 })
 
 
-lasso_button.addEventListener("click", function(e) {
-	canvas.style.cursor = "crosshair";
-	STATE["is_lasso"] = true;
-	STATE["lasso_start"] = -1;
-	STATE["lasso_end"] = -1;
-})
+// lasso_button.addEventListener("click", function(e) {
+// 	canvas.style.cursor = "crosshair";
+// 	STATE["is_lasso"] = true;
+// 	STATE["lasso_start"] = -1;
+// 	STATE["lasso_end"] = -1;
+// })

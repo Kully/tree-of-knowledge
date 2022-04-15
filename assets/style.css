@@ -1,12 +1,29 @@
+:root {
+	--canvas-height: 600px;
+	--canvas-width: 600px;
+}
+
+@font-face {
+	font-family: "Bodoni";
+	src: url(fonts/BauerBodoniStd-Roman.otf) format("otf");
+}
+
 body {
-	background-color: #222;
+	background-color: #e7e7e7;
+	font-family: Bodoni;
 }
 
 .app-canvas {
-	outline: 2px solid #FA5560;
+	display: block;
+	position: relative;
+	margin: auto auto;
+	top: calc(50vh - var(--canvas-height)/2);
 }
 
-.lasso-button {
-	font-size: 20px;
+button {
+	font-size: 16px;
+	border-radius: 0;
+	border: 0px solid red;
+	outline: 0px solid red;
 	display: block;
 }
