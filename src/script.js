@@ -1,3 +1,4 @@
+const DEBUG = 1;
 const FPS = 60;
 const CANVAS_WIDTH = 600;
 const CANVAS_HEIGHT = 600;
@@ -13,6 +14,9 @@ const NODE_COLORS = {
 const CAMERA = {
 	x: 0,
 	y: 0,
+	zoom: 0,
+	minZoom: 0,
+	maxZoom: 10,
 	width: CANVAS_WIDTH,
 	height: CANVAS_HEIGHT,
 }
@@ -202,6 +206,24 @@ canvas.addEventListener("mousemove", function(e) {
 canvas.addEventListener("mouseup", function(e) {
 	STATE["dragging_node_idx"] = -1;
 })
+
+canvas.addEventListener("wheel", function(e) {
+	e.preventDefault();
+
+	// zoom in/out the camera
+	if(e.deltaY > 0)
+	{
+		CAMERA["zoom"] = Math.min(CAMERA["zoom"]+1, CAMERA["maxZoom"]);
+	}
+	else
+	{
+		CAMERA["zoom"] = Math.max(CAMERA["zoom"]-1, CAMERA["minZoom"]);
+	}
+	// console.log("eventmode: scroll", e.deltaY, "\n");
+	console.log("CAMERA zoom is ", CAMERA["zoom"])
+})
+
+
 
 // draw the initial layout of nodes
 clear(canvas);
