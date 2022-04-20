@@ -1,6 +1,8 @@
 :root {
+	--background-color: #e7e7e7;
 	--canvas-height: 600px;
 	--canvas-width: 600px;
+	--icon-height: 26px;
 }
 
 @font-face {
@@ -9,21 +11,45 @@
 }
 
 body {
-	background-color: #e7e7e7;
+	margin: 0;
+	padding: 0;
+	background-color: var(--background-color);
 	font-family: Bodoni;
+}
+
+button {
+	font-size: 16px;
+	border-radius: 0;
+	border: 0px solid rgba(0,0,0,0);
+	outline: 0px solid rgba(0,0,0,0);
+	display: block;
 }
 
 .app-canvas {
 	display: block;
 	position: relative;
 	margin: auto auto;
+	width : 600px;
+   	height : 600px;
 	top: calc(50vh - var(--canvas-height)/2);
 }
 
-button {
-	font-size: 16px;
-	border-radius: 0;
-	border: 0px solid red;
-	outline: 0px solid red;
-	display: block;
+/*canvas {
+   width : 600px;
+   height : 600px;
+}*/
+
+.icon-row {
+	position: absolute;
+	top: calc(50vh - var(--canvas-height)/2 - var(--icon-height));
+	left: calc(50% - var(--canvas-width)/2);
+	user-select: none;
+}
+
+.icon-row:hover{
+	cursor: pointer;
+}
+
+.icon {
+	filter: contrast(30%);
 }
