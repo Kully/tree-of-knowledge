@@ -251,11 +251,14 @@ window.addEventListener("keyup", (e) => {
 })
 
 canvas.addEventListener("mousedown", (e) => {
+    let cursorX = e.offsetX * CANVAS_SCALE;
+    let cursorY = e.offsetY * CANVAS_SCALE;
+
     if(CONTROLLER["MetaLeft"] === 1)
     {
         STATE["drawingMode"] = 1
         STATE["drawingLineCoords"] = [
-            (e.offsetX * CANVAS_SCALE, e.offsetY * CANVAS_SCALE)
+            (cursorX, cursorY)
         ];
     }
 
@@ -270,8 +273,8 @@ canvas.addEventListener("mousedown", (e) => {
 
             if(
                 is_inside_box(
-                    e.offsetX * CANVAS_SCALE,
-                    e.offsetY * CANVAS_SCALE,
+                    cursorX,
+                    cursorY,
                     box_x0,
                     box_x1,
                     box_y0, 
@@ -287,23 +290,22 @@ canvas.addEventListener("mousedown", (e) => {
 })
 
 canvas.addEventListener("mousemove", (e) => {
+    let cursorX = e.offsetX * CANVAS_SCALE;
+    let cursorY = e.offsetY * CANVAS_SCALE;
+
     if(STATE["drawingMode"] === 1)
     {
         // add current mouse location to drawing path
         STATE["drawingLineCoords"].push(
-            [
-                e.offsetX * CANVAS_SCALE,
-                e.offsetY * CANVAS_SCALE
-            ]
+            [cursorX, cursorY]
         );
-        console.log(STATE["drawingLineCoords"]);
     }
     else
     if(STATE["draggingNodeIndex"] !== null)
     {
         let node_idx = STATE["draggingNodeIndex"];
-        NODES[node_idx]["x"] = e.offsetX * CANVAS_SCALE;
-        NODES[node_idx]["y"] = e.offsetY * CANVAS_SCALE;
+        NODES[node_idx]["x"] = cursorX;
+        NODES[node_idx]["y"] = cursorY;
     }
 
     draw_scene(NODES);
