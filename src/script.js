@@ -2,14 +2,14 @@
 
 const DEBUG = 1;
 const FPS = 60;
-const CANVAS_SCALE = 2;
+const CANVAS_SCALE = 3;
 const CANVAS_WIDTH = 600 * CANVAS_SCALE;
 const CANVAS_HEIGHT = 600 * CANVAS_SCALE;
 
 const CANVAS_COLOR = "#222";
 const STROKE_COLOR = "#FFFFFF44";
-const NODE_RADIUS = 10;
-const TEXT_FONT_SIZE = 14;
+const NODE_RADIUS = 24;
+const TEXT_FONT_SIZE = 34;
 
 const CLUSTER_COLOR = "#FFE400";
 const CLUSTER_LINE_DASH = [1, 10];
