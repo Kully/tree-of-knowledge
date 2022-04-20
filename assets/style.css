@@ -34,11 +34,6 @@ button {
 	top: calc(50vh - var(--canvas-height)/2);
 }
 
-/*canvas {
-   width : 600px;
-   height : 600px;
-}*/
-
 .icon-row {
 	position: absolute;
 	top: calc(50vh - var(--canvas-height)/2 - var(--icon-height));
