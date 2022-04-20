@@ -251,8 +251,6 @@ window.addEventListener("keyup", (e) => {
 })
 
 canvas.addEventListener("mousedown", (e) => {
-    console.log("e.offsetX is ", e.offsetX);
-
     if(CONTROLLER["MetaLeft"] === 1)
     {
         STATE["drawingMode"] = 1
@@ -318,7 +316,7 @@ canvas.addEventListener("mouseup", (e) => {
 })
 
 canvas.addEventListener("contextmenu", (e) => {
-    console.log("contextmenu ", e);
+
 })
 
 squarePlus.addEventListener("click", (e) => {
