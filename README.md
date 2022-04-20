@@ -2,15 +2,14 @@
 
 ### Sprint
 - [x] Increase Canvas Resolution
-- [ ] Relabel a node
-- [ ] Connect two nodes
+- [ ] Relabel Node
+- [ ] Connect Two Nodes
 - [ ] Implement Clustering
-	- Consider using game loop
-	- Consider dotted line for cluster
+	- Consider game loop + dotted line
 
 ### Batch of Tasks
-- [ ] Add realistic line physics
+- [ ] Add Realistic Line Physics
 - [ ] Enable Scroll Wheel for Zooming
 - [ ] Enable Mouse Panning
-- [ ] Connect node to a cluster
-- [ ] Add floating animation to all nodes
+- [ ] Connect Node to Cluster
+- [ ] Add Nodal Floating Animation
