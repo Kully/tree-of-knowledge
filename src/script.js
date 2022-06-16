@@ -108,7 +108,16 @@ const NODES = [
         type: "default",
         x: CANVAS_WIDTH / 2 - 30 * CANVAS_SCALE,
         y: CANVAS_HEIGHT / 2 + 120 * CANVAS_SCALE,
-        nodeConnections: [],
+        nodeConnections: [4],
+        clusterConnections: [],
+    },
+    {
+        id: 4,
+        label: "",
+        type: "default",
+        x: CANVAS_WIDTH / 2 - 65 * CANVAS_SCALE,
+        y: CANVAS_HEIGHT / 2 + 110 * CANVAS_SCALE,
+        nodeConnections: [3],
         clusterConnections: [],
     },
 ];
