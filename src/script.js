@@ -70,7 +70,7 @@ const CONNECTION_STYLE = {
 const NODES = [
     {
         id: 0,
-        label: "Point A",
+        label: "Apple",
         type: "default",
         x: CANVAS_WIDTH / 2,
         y: CANVAS_HEIGHT / 2,
@@ -79,7 +79,7 @@ const NODES = [
     },
     {
         id: 1,
-        label: "Point B",
+        label: "Orange",
         type: "default",
         x: CANVAS_WIDTH / 2 + 80 * CANVAS_SCALE,
         y: CANVAS_HEIGHT / 2 - 14 * CANVAS_SCALE,
@@ -88,7 +88,7 @@ const NODES = [
     },
     {
         id: 2,
-        label: "Point C",
+        label: "Pear",
         type: "default",
         x: CANVAS_WIDTH / 2 - 36 * CANVAS_SCALE,
         y: CANVAS_HEIGHT / 2 + 70 * CANVAS_SCALE,
