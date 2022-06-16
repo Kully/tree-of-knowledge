@@ -59,6 +59,12 @@ const NODE_STYLE_LOOKUP = {
         nodeColor: "#FA5560",
         labelColor: "#FFE400",
     },
+    rename: {
+        strokeStyle: "#FFE400",
+        lineWidth: 8,
+        nodeColor: "#FA5560",
+        labelColor: "#FA5560",
+    }
 }
 
 const CONNECTION_STYLE = {
@@ -284,9 +290,10 @@ window.addEventListener("keydown", (e) => {
 
     if(STATE["namingMode"] === true)
     {
-        if(e.key === "Escape")
+        if(e.key === "Escape" || e.key === "Enter")
         {
             STATE["namingMode"] = false;
+            NODES[STATE["lastClickedNode"]]["type"] = "default";
         }
         else
         {
@@ -475,6 +482,9 @@ canvas.addEventListener("dblclick", (e) => {
         {
             STATE["lastDblClickedNode"] = STATE["lastClickedNode"];
             STATE["namingMode"] = true;
+            NODES[STATE["lastClickedNode"]]["type"] = "rename";
         }
     }
+
+    draw_scene(NODES);
 })
