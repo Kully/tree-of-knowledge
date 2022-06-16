@@ -1,5 +1,5 @@
 :root {
-	--background-color: #e7e7e7;
+	--background-color: #D9D9D9;
 	--canvas-height: 600px;
 	--canvas-width: 600px;
 	--icon-height: 26px;
@@ -28,10 +28,6 @@ button {
 .app-canvas {
 	display: block;
 	position: relative;
-	margin: auto auto;
-	width : 600px;
-   	height : 600px;
-	top: calc(50vh - var(--canvas-height)/2);
 }
 
 .icon-row {
@@ -47,4 +43,34 @@ button {
 
 .icon {
 	filter: contrast(30%);
+}
+
+.context-menu {
+	position: absolute;
+	top: 200px;
+	left: 600px;
+	background-color: #333;
+	color: #CCC;
+	z-index: 5000;
+	width: 110px;
+	text-align: center;
+	cursor: pointer;
+	user-select: none;
+}
+
+.context-menu .item {
+	border-bottom: 1px solid #444;
+	padding: 2px;
+}
+
+.context-menu .item:hover {
+	background-color: #444;
+}
+
+.visible {
+	visibility: visible;
+}
+
+.hidden {
+	visibility: hidden;
 }

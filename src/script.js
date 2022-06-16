@@ -3,16 +3,18 @@
 const DEBUG = 1;
 const FPS = 60;
 const CANVAS_SCALE = 3;
-const CANVAS_WIDTH = 600 * CANVAS_SCALE;
-const CANVAS_HEIGHT = 600 * CANVAS_SCALE;
 
+
+const BASE_CANVAS_WIDTH = window.innerWidth;
+const BASE_CANVAS_HEIGHT = window.innerHeight;
+const CANVAS_WIDTH = BASE_CANVAS_WIDTH * CANVAS_SCALE;
+const CANVAS_HEIGHT = BASE_CANVAS_HEIGHT * CANVAS_SCALE;
 const CANVAS_COLOR = "#222";
-const STROKE_COLOR = "#FFFFFF44";
+
 const NODE_RADIUS = 24;
 const TEXT_FONT_SIZE = 34;
-
-const CLUSTER_COLOR = "#FFE400";
-const CLUSTER_LINE_DASH = [1, 10];
+const HIGHLIGHT_COLOR = "#FFE400";
+const CLUSTER_LINE_DASH = [1, 1];
 const NODE_COLORS = {
     default: "#FA5560",
     label: "#E4E4E4",
@@ -37,12 +39,37 @@ const STATE = {
     drawingMode: false,
     drawingStartCoords: null,
     drawingLineCoords: null,
+    contextMenuOpen: false,
+    lastClickedNode: null,
+    namingNode: false,
+}
+
+const NODE_STYLE_LOOKUP = {
+    default: {
+        strokeStyle: "#00000000",
+        lineWidth: 0,
+        nodeColor: "#FA5560",
+        labelColor: "#E4E4E4",
+    },
+    selected: {
+        strokeStyle: "#FFE400",
+        lineWidth: 8,
+        nodeColor: "#FA5560",
+        labelColor: "#FFE400",
+    },
+}
+
+const CONNECTION_STYLE = {
+    strokeStyle: "#FFFFFF44",
+    lineWidth: 1,
+    lineDash: [0, 0],
 }
 
 const NODES = [
     {
         id: 0,
         label: "Point A",
+        type: "default",
         x: CANVAS_WIDTH / 2,
         y: CANVAS_HEIGHT / 2,
         nodeConnections: [1],
@@ -51,6 +78,7 @@ const NODES = [
     {
         id: 1,
         label: "Point B",
+        type: "default",
         x: CANVAS_WIDTH / 2 + 80 * CANVAS_SCALE,
         y: CANVAS_HEIGHT / 2 - 14 * CANVAS_SCALE,
         nodeConnections: [0],
@@ -59,6 +87,7 @@ const NODES = [
     {
         id: 2,
         label: "Point C",
+        type: "default",
         x: CANVAS_WIDTH / 2 - 36 * CANVAS_SCALE,
         y: CANVAS_HEIGHT / 2 + 70 * CANVAS_SCALE,
         nodeConnections: [],
@@ -67,6 +96,7 @@ const NODES = [
     {
         id: 3,
         label: null,
+        type: "default",
         x: CANVAS_WIDTH / 2 - 30 * CANVAS_SCALE,
         y: CANVAS_HEIGHT / 2 + 120 * CANVAS_SCALE,
         nodeConnections: [],
@@ -79,6 +109,7 @@ function init_node(id, x, y, nodeConnections, clusterConnections)
     return {
         id: id,
         label: null,
+        type: "default",
         x: x,
         y: y,
         nodeConnections: nodeConnections,
@@ -109,8 +140,6 @@ function is_inside_box(x, y, box_x0, box_x1, box_y0, box_y1)
 function draw_line_between_two_nodes(node_a, node_b)
 {
     ctx.beginPath();
-    ctx.setLineDash([0, 0]);
-    ctx.mozDash = [0, 0];
     ctx.moveTo(
         node_a["x"],
         node_a["y"],
@@ -119,14 +148,17 @@ function draw_line_between_two_nodes(node_a, node_b)
         node_b["x"],
         node_b["y"],
     )
-    ctx.strokeStyle = STROKE_COLOR;
+    ctx.lineWidth = CONNECTION_STYLE["lineWidth"];
+    ctx.strokeStyle = CONNECTION_STYLE["strokeStyle"];
+    ctx.mozDash = CONNECTION_STYLE["lineDash"];
+    ctx.setLineDash(CONNECTION_STYLE["lineDash"]);
     ctx.stroke();
 }
 
 
 function draw_node(ctx, node)
 {
-    // outline the node
+    // outline and color in the node
     ctx.beginPath();
     ctx.arc(
         node["x"],
@@ -136,22 +168,23 @@ function draw_node(ctx, node)
         2 * Math.PI,
         false,
     );
- 
-    // color the node
-    ctx.fillStyle = NODE_COLORS["default"];
+    ctx.fillStyle = NODE_STYLE_LOOKUP[node["type"]]["nodeColor"];
+    ctx.strokeStyle = NODE_STYLE_LOOKUP[node["type"]]["strokeStyle"];
+    ctx.lineWidth = NODE_STYLE_LOOKUP[node["type"]]["lineWidth"];
+    ctx.stroke();
     ctx.fill();
 
-    // type the node label
-    let y_text_shift = 5;
+    // display the label
+    let textDeltaY = 12;
     if(node["label"] !== null && node["label"] !== "")
     {
+        ctx.fillStyle = NODE_STYLE_LOOKUP[node["type"]]["labelColor"];
         ctx.font = TEXT_FONT_SIZE + "px Bodoni";
         ctx.textAlign = "center";
-        ctx.fillStyle = NODE_COLORS["label"];
         ctx.fillText(
             node["label"],
             node["x"],
-            node["y"] - NODE_RADIUS - y_text_shift
+            node["y"] - NODE_RADIUS - textDeltaY
         );
     }
 }
@@ -213,7 +246,7 @@ function draw_scene(NODES)
             }
         }
         // set path style
-        ctx.strokeStyle = CLUSTER_COLOR;
+        ctx.strokeStyle = HIGHLIGHT_COLOR;
         if(ctx.setLineDash !== undefined)
             ctx.setLineDash(CLUSTER_LINE_DASH);
         if(ctx.mozDash !== undefined)
@@ -223,14 +256,18 @@ function draw_scene(NODES)
 
 }
 
-// setup buttons
+// setup elements
 const squarePlus = document.getElementById("square-plus");
+const contextMenu = document.getElementById("context-menu");
 
 // setup canvas
 const canvas = document.getElementById("app-canvas");
 const ctx = canvas.getContext("2d");
+canvas.style.height = BASE_CANVAS_HEIGHT + "px";
+canvas.style.width = BASE_CANVAS_WIDTH + "px";
 canvas.height = CANVAS_HEIGHT;
 canvas.width = CANVAS_WIDTH;
+
 
 draw_scene(NODES);
 
@@ -250,41 +287,59 @@ window.addEventListener("keyup", (e) => {
         CONTROLLER["MetaLeft"] = 0;
 })
 
+contextMenu.addEventListener("click", (e) => {
+    if(e.target.innerHTML == "Rename Node")
+    {
+        STATE["namingNode"] = true;
+        NODES[STATE["lastClickedNode"]]["label"] = "NEW ONE";
+    }
+    else
+    if(e.target.innerHTML == "Connect Node")
+    {
+
+    }
+
+    draw_scene(NODES);
+})
+
 canvas.addEventListener("mousedown", (e) => {
     let cursorX = e.offsetX * CANVAS_SCALE;
     let cursorY = e.offsetY * CANVAS_SCALE;
 
-    if(CONTROLLER["MetaLeft"] === 1)
+    if(STATE["contextMenuOpen"] === true)
     {
-        STATE["drawingMode"] = 1
-        STATE["drawingLineCoords"] = [
-            (cursorX, cursorY)
-        ];
+        contextMenu.classList.add("hidden");
+        STATE["contextMenuOpen"] === false
     }
-
-    if(STATE["drawingMode"] !== 1)
+    let clickedAnyNode = false;
+    for(let idx=0; idx<NODES.length; idx+=1)
+    {
+        if(
+            is_inside_box(
+                cursorX,
+                cursorY,
+                NODES[idx]["x"] - NODE_RADIUS,
+                NODES[idx]["x"] + NODE_RADIUS,
+                NODES[idx]["y"] - NODE_RADIUS,
+                NODES[idx]["y"] + NODE_RADIUS,
+            )
+        )
+        {
+            clickedAnyNode = true;
+            if(CONTROLLER["MetaLeft"] === 1)
+                NODES[idx]["type"] = "selected";
+            else
+                NODES[idx]["type"] = "default";
+            STATE["lastClickedNode"] = idx;
+            draw_node(ctx, NODES[idx]);
+            STATE["draggingNodeIndex"] = idx;
+        }
+    }
+    if(clickedAnyNode === false && CONTROLLER["MetaLeft"] !== 1)
     {
         for(let idx=0; idx<NODES.length; idx+=1)
         {
-            let box_x0 = NODES[idx]["x"] - NODE_RADIUS;
-            let box_x1 = NODES[idx]["x"] + NODE_RADIUS;
-            let box_y0 = NODES[idx]["y"] - NODE_RADIUS;
-            let box_y1 = NODES[idx]["y"] + NODE_RADIUS;
-
-            if(
-                is_inside_box(
-                    cursorX,
-                    cursorY,
-                    box_x0,
-                    box_x1,
-                    box_y0, 
-                    box_y1,
-                )
-            )
-            {
-                draw_node(ctx, NODES[idx]);
-                STATE["draggingNodeIndex"] = idx;
-            }
+            NODES[idx]["type"] = "default";
         }
     }
 })
@@ -312,13 +367,42 @@ canvas.addEventListener("mousemove", (e) => {
 })
 
 canvas.addEventListener("mouseup", (e) => {
+    if(STATE["draggingNodeIndex"] !== null)
+        NODES[STATE["draggingNodeIndex"]]["color"] = NODE_COLORS["default"];
+
     STATE["drawingMode"] = 0;
     STATE["drawingLineCoords"] = null
     STATE["draggingNodeIndex"] = null;
+
+    draw_scene(NODES);
 })
 
 canvas.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
 
+    let cursorX = e.offsetX * CANVAS_SCALE;
+    let cursorY = e.offsetY * CANVAS_SCALE;
+
+    STATE["contextMenuOpen"] = true;
+
+    for(let idx=0; idx<NODES.length; idx+=1)
+    {
+        if(
+            is_inside_box(
+                cursorX,
+                cursorY,
+                NODES[idx]["x"] - NODE_RADIUS,
+                NODES[idx]["x"] + NODE_RADIUS,
+                NODES[idx]["y"] - NODE_RADIUS,
+                NODES[idx]["y"] + NODE_RADIUS,
+            )
+        )
+        {
+            contextMenu.style.left = e.offsetX + 4 + "px";
+            contextMenu.style.top  = e.offsetY - 4 + "px";
+            contextMenu.classList.remove("hidden");
+        }
+    }
 })
 
 squarePlus.addEventListener("click", (e) => {
