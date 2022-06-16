@@ -44,6 +44,7 @@ const STATE = {
     lastClickedNode: null,
     lastDblClickedNode: null,
     namingMode: false,
+    keysDownSinceNamingMode: 0,
 }
 
 const NODE_STYLE_LOOKUP = {
@@ -294,6 +295,7 @@ window.addEventListener("keydown", (e) => {
         {
             STATE["namingMode"] = false;
             NODES[STATE["lastClickedNode"]]["type"] = "default";
+            STATE["keysDownSinceNamingMode"] = 0;
         }
         else
         {
@@ -302,16 +304,22 @@ window.addEventListener("keydown", (e) => {
             let newLabel = NODES[STATE["lastDblClickedNode"]]["label"];
             if(ALPHABET_KEYS.includes(e.key) || e.key === " ")
             {
+                if(STATE["keysDownSinceNamingMode"] === 0)
+                    newLabel = "";
+
                 newKey = e.key;
                 newLabel += newKey;
+                STATE["keysDownSinceNamingMode"] += 1;
+                NODES[STATE["lastDblClickedNode"]]["label"] = newLabel;
             }
             else
             if(e.key === "Backspace")
             {
                 newLabel = newLabel.slice(0, newLabel.length - 1);
+                STATE["keysDownSinceNamingMode"] += 1;
+                NODES[STATE["lastDblClickedNode"]]["label"] = newLabel;
             }
-
-            NODES[STATE["lastDblClickedNode"]]["label"] = newLabel;
+            
         }
     }
     draw_scene(NODES);
@@ -380,6 +388,8 @@ canvas.addEventListener("mousedown", (e) => {
     if(clickedAnyNode === false)
     {
         STATE["namingMode"] = false;
+        NODES[STATE["lastClickedNode"]]["type"] = "default";
+        STATE["keysDownSinceNamingMode"] = 0;
     }
 })
 
