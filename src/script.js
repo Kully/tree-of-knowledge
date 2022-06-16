@@ -41,7 +41,6 @@ const STATE = {
     drawingMode: false,
     drawingStartCoords: null,
     drawingLineCoords: null,
-    contextMenuOpen: false,
     lastClickedNode: null,
     lastDblClickedNode: null,
     namingMode: false,
@@ -266,10 +265,6 @@ function draw_scene(NODES)
 
 }
 
-// setup elements
-const squarePlus = document.getElementById("square-plus");
-const contextMenu = document.getElementById("context-menu");
-
 // setup canvas
 const canvas = document.getElementById("app-canvas");
 const ctx = canvas.getContext("2d");
@@ -331,30 +326,10 @@ window.addEventListener("keyup", (e) => {
         CONTROLLER["Meta"] = 0;
 })
 
-contextMenu.addEventListener("click", (e) => {
-    if(e.target.innerHTML == "Rename Node")
-    {
-        STATE["namingMode"] = true;
-        NODES[STATE["lastClickedNode"]]["label"] = "NEW ONE";
-    }
-    else
-    if(e.target.innerHTML == "Connect Node")
-    {
-
-    }
-
-    draw_scene(NODES);
-})
-
 canvas.addEventListener("mousedown", (e) => {
     let cursorX = e.offsetX * CANVAS_SCALE;
     let cursorY = e.offsetY * CANVAS_SCALE;
 
-    if(STATE["contextMenuOpen"] === true)
-    {
-        contextMenu.classList.add("hidden");
-        STATE["contextMenuOpen"] === false
-    }
     let clickedAnyNode = false;
     for(let idx=0; idx<NODES.length; idx+=1)
     {
@@ -389,8 +364,9 @@ canvas.addEventListener("mousedown", (e) => {
     if(clickedAnyNode === false)
     {
         STATE["namingMode"] = false;
-        NODES[STATE["lastClickedNode"]]["type"] = "default";
         STATE["keysDownSinceNamingMode"] = 0;
+        if(STATE["lastClickedNode"])
+            NODES[STATE["lastClickedNode"]]["type"] = "default";
     }
 })
 
@@ -424,42 +400,6 @@ canvas.addEventListener("mouseup", (e) => {
     STATE["drawingLineCoords"] = null
     STATE["draggingNodeIndex"] = null;
 
-    draw_scene(NODES);
-})
-
-canvas.addEventListener("contextmenu", (e) => {
-    e.preventDefault();
-
-    let cursorX = e.offsetX * CANVAS_SCALE;
-    let cursorY = e.offsetY * CANVAS_SCALE;
-
-    STATE["contextMenuOpen"] = true;
-
-    for(let idx=0; idx<NODES.length; idx+=1)
-    {
-        if(
-            is_inside_box(
-                cursorX,
-                cursorY,
-                NODES[idx]["x"] - NODE_RADIUS,
-                NODES[idx]["x"] + NODE_RADIUS,
-                NODES[idx]["y"] - NODE_RADIUS,
-                NODES[idx]["y"] + NODE_RADIUS,
-            )
-        )
-        {
-            contextMenu.style.left = e.offsetX + 4 + "px";
-            contextMenu.style.top  = e.offsetY - 4 + "px";
-            contextMenu.classList.remove("hidden");
-        }
-    }
-})
-
-squarePlus.addEventListener("click", (e) => {
-    // create node
-    let x = Math.floor(Math.random() * CANVAS_WIDTH);
-    let y = Math.floor(Math.random() * CANVAS_HEIGHT);
-    create_node(x, y);
     draw_scene(NODES);
 })
 
