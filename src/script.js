@@ -4,7 +4,6 @@ const DEBUG = 1;
 const FPS = 60;
 const CANVAS_SCALE = 3;
 
-
 const BASE_CANVAS_WIDTH = window.innerWidth;
 const BASE_CANVAS_HEIGHT = window.innerHeight;
 const CANVAS_WIDTH = BASE_CANVAS_WIDTH * CANVAS_SCALE;
@@ -31,8 +30,10 @@ const CAMERA = {
 }
 
 const CONTROLLER = {
-    MetaLeft: 0,
+    Meta: 0,
 }
+
+const ALPHABET_KEYS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 const STATE = { 
     draggingNodeIndex: null,
@@ -41,7 +42,8 @@ const STATE = {
     drawingLineCoords: null,
     contextMenuOpen: false,
     lastClickedNode: null,
-    namingNode: false,
+    lastDblClickedNode: null,
+    namingMode: false,
 }
 
 const NODE_STYLE_LOOKUP = {
@@ -95,7 +97,7 @@ const NODES = [
     },
     {
         id: 3,
-        label: null,
+        label: "",
         type: "default",
         x: CANVAS_WIDTH / 2 - 30 * CANVAS_SCALE,
         y: CANVAS_HEIGHT / 2 + 120 * CANVAS_SCALE,
@@ -271,26 +273,52 @@ canvas.width = CANVAS_WIDTH;
 
 draw_scene(NODES);
 
-
 // ***************
 // Event Listeners
 // ***************
 
 // save keyboard input
 window.addEventListener("keydown", (e) => {
-    if(e.code === "MetaLeft")
-        CONTROLLER["MetaLeft"] = 1;
+    if(e.key === "Meta")
+        CONTROLLER["Meta"] = 1;
+
+    if(STATE["namingMode"] === true)
+    {
+        if(e.key === "Escape")
+        {
+            STATE["namingMode"] = false;
+        }
+        else
+        {
+            // determine the new label for the selected object
+            let newKey = "";
+            let newLabel = NODES[STATE["lastDblClickedNode"]]["label"];
+            if(ALPHABET_KEYS.includes(e.key) || e.key === " ")
+            {
+                newKey = e.key;
+                newLabel += newKey;
+            }
+            else
+            if(e.key === "Backspace")
+            {
+                newLabel = newLabel.slice(0, newLabel.length - 1);
+            }
+
+            NODES[STATE["lastDblClickedNode"]]["label"] = newLabel;
+        }
+    }
+    draw_scene(NODES);
 })
 
 window.addEventListener("keyup", (e) => {
-    if(e.code === "MetaLeft")
-        CONTROLLER["MetaLeft"] = 0;
+    if(e.key === "Meta")
+        CONTROLLER["Meta"] = 0;
 })
 
 contextMenu.addEventListener("click", (e) => {
     if(e.target.innerHTML == "Rename Node")
     {
-        STATE["namingNode"] = true;
+        STATE["namingMode"] = true;
         NODES[STATE["lastClickedNode"]]["label"] = "NEW ONE";
     }
     else
@@ -326,7 +354,7 @@ canvas.addEventListener("mousedown", (e) => {
         )
         {
             clickedAnyNode = true;
-            if(CONTROLLER["MetaLeft"] === 1)
+            if(CONTROLLER["Meta"] === 1)
                 NODES[idx]["type"] = "selected";
             else
                 NODES[idx]["type"] = "default";
@@ -335,12 +363,16 @@ canvas.addEventListener("mousedown", (e) => {
             STATE["draggingNodeIndex"] = idx;
         }
     }
-    if(clickedAnyNode === false && CONTROLLER["MetaLeft"] !== 1)
+    if(clickedAnyNode === false && CONTROLLER["Meta"] !== 1)
     {
         for(let idx=0; idx<NODES.length; idx+=1)
         {
             NODES[idx]["type"] = "default";
         }
+    }
+    if(clickedAnyNode === false)
+    {
+        STATE["namingMode"] = false;
     }
 })
 
@@ -422,5 +454,27 @@ canvas.addEventListener("wheel", function(e) {
     else
     {
         CAMERA["zoom"] = Math.max(CAMERA["zoom"]-1, CAMERA["minZoom"]);
+    }
+})
+
+canvas.addEventListener("dblclick", (e) => {
+    let cursorX = e.offsetX * CANVAS_SCALE;
+    let cursorY = e.offsetY * CANVAS_SCALE;
+    for(let idx=0; idx<NODES.length; idx+=1)
+    {
+        if(
+            is_inside_box(
+                cursorX,
+                cursorY,
+                NODES[idx]["x"] - NODE_RADIUS,
+                NODES[idx]["x"] + NODE_RADIUS,
+                NODES[idx]["y"] - NODE_RADIUS,
+                NODES[idx]["y"] + NODE_RADIUS,
+            )
+        )
+        {
+            STATE["lastDblClickedNode"] = STATE["lastClickedNode"];
+            STATE["namingMode"] = true;
+        }
     }
 })
