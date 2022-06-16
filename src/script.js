@@ -33,6 +33,7 @@ const CONTROLLER = {
     Meta: 0,
 }
 
+const NUMBERS = "1234567890";
 const ALPHABET_KEYS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 const STATE = { 
@@ -302,7 +303,7 @@ window.addEventListener("keydown", (e) => {
             // determine the new label for the selected object
             let newKey = "";
             let newLabel = NODES[STATE["lastDblClickedNode"]]["label"];
-            if(ALPHABET_KEYS.includes(e.key) || e.key === " ")
+            if(ALPHABET_KEYS.includes(e.key) || NUMBERS.includes(e.key) || e.key === " ")
             {
                 if(STATE["keysDownSinceNamingMode"] === 0)
                     newLabel = "";
