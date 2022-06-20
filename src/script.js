@@ -1,23 +1,23 @@
 "use strict";
 
-const DEBUG = 1;
-const FPS = 60;
-const CANVAS_SCALE = 3;
+import {
+    CANVAS_SCALE,
+    BASE_CANVAS_WIDTH,
+    BASE_CANVAS_HEIGHT,
+    CANVAS_WIDTH,
+    CANVAS_HEIGHT,
+    CANVAS_COLOR,
+    NODE_RADIUS,
+    TEXT_FONT_SIZE,
+    HIGHLIGHT_COLOR,
+    CLUSTER_LINE_DASH,
+    NODE_COLORS,
+    NUMBERS_STR,
+    ALPHABET_STR,
+    CONNECTION_STYLE,
+    NODE_STYLE_LOOKUP
+} from "./constants.js"
 
-const BASE_CANVAS_WIDTH = window.innerWidth;
-const BASE_CANVAS_HEIGHT = window.innerHeight;
-const CANVAS_WIDTH = BASE_CANVAS_WIDTH * CANVAS_SCALE;
-const CANVAS_HEIGHT = BASE_CANVAS_HEIGHT * CANVAS_SCALE;
-const CANVAS_COLOR = "#222";
-
-const NODE_RADIUS = 24;
-const TEXT_FONT_SIZE = 34;
-const HIGHLIGHT_COLOR = "#FFE400";
-const CLUSTER_LINE_DASH = [1, 1];
-const NODE_COLORS = {
-    default: "#FA5560",
-    label: "#E4E4E4",
-}
 
 const CAMERA = {
     x: 0,
@@ -33,9 +33,6 @@ const CONTROLLER = {
     Meta: 0,
 }
 
-const NUMBERS = "1234567890";
-const ALPHABET_KEYS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
 const STATE = { 
     draggingNodeIndex: null,
     drawingMode: false,
@@ -45,33 +42,6 @@ const STATE = {
     lastDblClickedNode: null,
     namingMode: false,
     keysDownSinceNamingMode: 0,
-}
-
-const NODE_STYLE_LOOKUP = {
-    default: {
-        strokeStyle: "#00000000",
-        lineWidth: 0,
-        nodeColor: "#FA5560",
-        labelColor: "#E4E4E4",
-    },
-    selected: {
-        strokeStyle: "#FFE400",
-        lineWidth: 8,
-        nodeColor: "#FA5560",
-        labelColor: "#FFE400",
-    },
-    rename: {
-        strokeStyle: "#FFE400",
-        lineWidth: 8,
-        nodeColor: "#FA5560",
-        labelColor: "#FA5560",
-    }
-}
-
-const CONNECTION_STYLE = {
-    strokeStyle: "#FFFFFF44",
-    lineWidth: 1,
-    lineDash: [0, 0],
 }
 
 const NODES = [
@@ -88,36 +58,9 @@ const NODES = [
         id: 1,
         label: "Orange",
         type: "default",
-        x: CANVAS_WIDTH / 2 + 80 * CANVAS_SCALE,
+        x: CANVAS_WIDTH / 2 + 60 * CANVAS_SCALE,
         y: CANVAS_HEIGHT / 2 - 14 * CANVAS_SCALE,
         nodeConnections: [0],
-        clusterConnections: [],
-    },
-    {
-        id: 2,
-        label: "Pear",
-        type: "default",
-        x: CANVAS_WIDTH / 2 - 36 * CANVAS_SCALE,
-        y: CANVAS_HEIGHT / 2 + 70 * CANVAS_SCALE,
-        nodeConnections: [],
-        clusterConnections: [],
-    },
-    {
-        id: 3,
-        label: "",
-        type: "default",
-        x: CANVAS_WIDTH / 2 - 30 * CANVAS_SCALE,
-        y: CANVAS_HEIGHT / 2 + 120 * CANVAS_SCALE,
-        nodeConnections: [4],
-        clusterConnections: [],
-    },
-    {
-        id: 4,
-        label: "",
-        type: "default",
-        x: CANVAS_WIDTH / 2 - 65 * CANVAS_SCALE,
-        y: CANVAS_HEIGHT / 2 + 110 * CANVAS_SCALE,
-        nodeConnections: [3],
         clusterConnections: [],
     },
 ];
@@ -135,6 +78,13 @@ function init_node(id, x, y, nodeConnections, clusterConnections)
     }
 }
 
+function is_inside_box(x, y, box_x0, box_x1, box_y0, box_y1)
+{
+    if(x >= box_x0 && x <= box_x1 && y >= box_y0 && y <= box_y1)
+        return true;
+    return false;
+}
+
 function create_node(x, y)
 {
     let new_id = NODES.length;
@@ -146,13 +96,6 @@ function clear(canvas)
 {
     ctx.fillStyle = CANVAS_COLOR;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-}
-
-function is_inside_box(x, y, box_x0, box_x1, box_y0, box_y1)
-{
-    if(x >= box_x0 && x <= box_x1 && y >= box_y0 && y <= box_y1)
-        return true;
-    return false;
 }
 
 function draw_line_between_two_nodes(node_a, node_b)
@@ -282,12 +225,8 @@ canvas.style.width = BASE_CANVAS_WIDTH + "px";
 canvas.height = CANVAS_HEIGHT;
 canvas.width = CANVAS_WIDTH;
 
-
 draw_scene(NODES);
 
-// ***************
-// Event Listeners
-// ***************
 
 // save keyboard input
 window.addEventListener("keydown", (e) => {
@@ -307,7 +246,7 @@ window.addEventListener("keydown", (e) => {
             // determine the new label for the selected object
             let newKey = "";
             let newLabel = NODES[STATE["lastDblClickedNode"]]["label"];
-            if(ALPHABET_KEYS.includes(e.key) || NUMBERS.includes(e.key) || e.key === " ")
+            if(ALPHABET_STR.includes(e.key) || NUMBERS_STR.includes(e.key) || e.key === " ")
             {
                 if(STATE["keysDownSinceNamingMode"] === 0)
                     newLabel = "";
