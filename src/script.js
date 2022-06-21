@@ -15,6 +15,7 @@ import {
     NUMBERS_STR,
     ALPHABET_STR,
     CONNECTION_STYLE,
+    POTENTIAL_CONNECTION_STYLE,
     NODE_STYLE_LOOKUP,
     VALID_CONTROLLER_KEYS,
 } from "./constants.js"
@@ -30,20 +31,22 @@ const CAMERA = {
     height: CANVAS_HEIGHT,
 }
 
-const CONTROLLER = {
-    Meta: 0,
-    a: 0,
-}
+let CONTROLLER = {};
+for(let key of VALID_CONTROLLER_KEYS)
+    CONTROLLER[key] = 0;
 
 const STATE = { 
     draggingNodeIndex: null,
     drawingMode: false,
     drawingStartCoords: null,
     drawingLineCoords: null,
+    connectingMode: false,
     lastClickedNode: null,
     lastDblClickedNode: null,
     namingMode: false,
     keysDownSinceNamingMode: 0,
+    cursorX: 0,
+    cursorY: 0,
 }
 
 const NODES = [
@@ -53,7 +56,7 @@ const NODES = [
         type: "default",
         x: CANVAS_WIDTH / 2,
         y: CANVAS_HEIGHT / 2,
-        nodeConnections: [],
+        nodeConnections: [1],
         clusterConnections: [],
     },
     {
@@ -62,7 +65,7 @@ const NODES = [
         type: "default",
         x: CANVAS_WIDTH / 2 + 60 * CANVAS_SCALE,
         y: CANVAS_HEIGHT / 2 - 14 * CANVAS_SCALE,
-        nodeConnections: [],
+        nodeConnections: [0],
         clusterConnections: [],
     },
 ];
@@ -80,18 +83,18 @@ function createNodeObject(id, x, y, nodeConnections, clusterConnections)
     }
 }
 
-function isInsideBox(x, y, box_x0, box_x1, box_y0, box_y1)
-{
-    if(x >= box_x0 && x <= box_x1 && y >= box_y0 && y <= box_y1)
-        return true;
-    return false;
-}
-
 function addNode(x, y)
 {
     let new_id = NODES.length;
     let new_node = createNodeObject(new_id, x, y, [], []);
     NODES.push(new_node);
+}
+
+function isInsideBox(x, y, box_x0, box_x1, box_y0, box_y1)
+{
+    if(x >= box_x0 && x <= box_x1 && y >= box_y0 && y <= box_y1)
+        return true;
+    return false;
 }
 
 function clear(canvas)
@@ -159,12 +162,14 @@ function drawNodalConnections(NODES)
     {
         for(let id of NODES[idx]["nodeConnections"])
         {
-            if(!alreadyTraversed.includes(id))
+            let nodePair = [Math.min(id, idx), Math.max(id, idx)];
+            console.log("nodePair is ", nodePair);
+            if(!alreadyTraversed.includes(nodePair))
             {
                 let node_a = NODES[idx]
                 let node_b = NODES[id]
                 drawLineBetweenNodes(node_a, node_b);
-                alreadyTraversed.push(id);
+                alreadyTraversed.push(nodePair);
             }
         }
     }
@@ -217,6 +222,24 @@ function drawScene(NODES)
         ctx.stroke();
     }
 
+    // display line from last clicked node to cursor
+    if(STATE["connectingMode"] === true)
+    {
+        ctx.beginPath();
+        ctx.moveTo(
+            NODES[STATE["lastClickedNode"]]["x"],
+            NODES[STATE["lastClickedNode"]]["y"],
+        )
+        ctx.lineTo(
+            STATE["cursorX"],
+            STATE["cursorY"],
+        )
+        ctx.lineWidth = POTENTIAL_CONNECTION_STYLE["lineWidth"];
+        ctx.strokeStyle = POTENTIAL_CONNECTION_STYLE["strokeStyle"];
+        ctx.mozDash = POTENTIAL_CONNECTION_STYLE["lineDash"];
+        ctx.setLineDash(POTENTIAL_CONNECTION_STYLE["lineDash"]);
+        ctx.stroke();
+    }
 }
 
 // setup canvas
@@ -237,6 +260,20 @@ window.addEventListener("keydown", (e) => {
         if(e.key === key)
             CONTROLLER[key] = 1;
     }
+
+    if(
+        CONTROLLER["c"] === 1 &&
+            STATE["lastClickedNode"] !== null &&
+                NODES[STATE["lastClickedNode"]]["type"] === "selected"
+    )
+    {
+        STATE["connectingMode"] = true;
+    }
+    else
+    {
+        STATE["connectingMode"] = false;
+    }
+
 
     if(STATE["namingMode"] === true)
     {
@@ -281,6 +318,11 @@ window.addEventListener("keyup", (e) => {
         if(e.key === key)
             CONTROLLER[key] = 0;
     }
+
+    if(CONTROLLER["c"] === 0)
+    {
+        STATE["connectingMode"] = false;
+    }
 })
 
 canvas.addEventListener("mousedown", (e) => {
@@ -303,10 +345,31 @@ canvas.addEventListener("mousedown", (e) => {
         )
         {
             clickedAnyNode = true;
-            NODES[idx]["type"] = "selected";
-            STATE["lastClickedNode"] = idx;
-            STATE["draggingNodeIndex"] = idx;
-            drawNode(ctx, NODES[idx]);
+            if(STATE["connectingMode"] === true)
+            {
+                // connect two nodes if connection doesn't exist
+                if(
+                    !NODES[STATE["lastClickedNode"]]["nodeConnections"].includes(idx)
+                )
+                {
+                    NODES[STATE["lastClickedNode"]]["nodeConnections"].push(idx);
+                    NODES[idx]["nodeConnections"].push(STATE["lastClickedNode"]);
+                }
+                else
+                {
+                    NODES[idx]["type"] = "selected";
+                    STATE["draggingNodeIndex"] = idx;
+                    drawNode(ctx, NODES[idx]);
+                }
+                STATE["lastClickedNode"] = idx;
+            }
+            else
+            {
+                NODES[idx]["type"] = "selected";
+                STATE["lastClickedNode"] = idx;
+                STATE["draggingNodeIndex"] = idx;
+                drawNode(ctx, NODES[idx]);
+            }
         }
         else
         {
@@ -329,15 +392,21 @@ canvas.addEventListener("mousedown", (e) => {
         }
     }
 
-    if(CONTROLLER["a"] === 1)
+    if(CONTROLLER["a"] === 1 && STATE["connectingMode"] === false)
     {
         addNode(cursorX, cursorY);
     }
+
+    drawScene(NODES);
 })
 
 canvas.addEventListener("mousemove", (e) => {
     let cursorX = e.offsetX * CANVAS_SCALE;
     let cursorY = e.offsetY * CANVAS_SCALE;
+
+    // record mouse position relative to canvas
+    STATE["cursorX"] = cursorX;
+    STATE["cursorY"] = cursorY;
 
     if(STATE["drawingMode"] === 1)
     {
@@ -353,6 +422,12 @@ canvas.addEventListener("mousemove", (e) => {
         NODES[node_idx]["x"] = cursorX;
         NODES[node_idx]["y"] = cursorY;
     }
+
+    for(let idx=0; idx<NODES.length; idx += 1)
+    {
+        console.log("node ", idx, ", ", NODES[idx]["label"], ", ", NODES[idx]["nodeConnections"]);
+    }
+    console.log("");
 
     drawScene(NODES);
 })

@@ -20,6 +20,11 @@ export const CONNECTION_STYLE = {
     lineWidth: 1,
     lineDash: [0, 0],
 }
+export const POTENTIAL_CONNECTION_STYLE = {
+    strokeStyle: "#FFFFFF44",
+    lineWidth: 1,
+    lineDash: [8, 8],
+}
 export const NODE_STYLE_LOOKUP = {
     default: {
         strokeStyle: "#00000000",
