@@ -43,3 +43,5 @@ export const NODE_STYLE_LOOKUP = {
 
 export const NUMBERS_STR = "1234567890";
 export const ALPHABET_STR = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+export const VALID_CONTROLLER_KEYS = ["Meta", "a", "c"];

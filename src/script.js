@@ -15,7 +15,8 @@ import {
     NUMBERS_STR,
     ALPHABET_STR,
     CONNECTION_STYLE,
-    NODE_STYLE_LOOKUP
+    NODE_STYLE_LOOKUP,
+    VALID_CONTROLLER_KEYS,
 } from "./constants.js"
 
 
@@ -231,10 +232,11 @@ drawScene(NODES);
 
 // save keyboard input
 window.addEventListener("keydown", (e) => {
-    if(e.key === "Meta")
-        CONTROLLER["Meta"] = 1;
-    if(e.key === "a")
-        CONTROLLER["a"] = 1;
+    for(let key of VALID_CONTROLLER_KEYS)
+    {
+        if(e.key === key)
+            CONTROLLER[key] = 1;
+    }
 
     if(STATE["namingMode"] === true)
     {
@@ -274,10 +276,11 @@ window.addEventListener("keydown", (e) => {
 })
 
 window.addEventListener("keyup", (e) => {
-    if(e.key === "Meta")
-        CONTROLLER["Meta"] = 0;
-    if(e.key === "a")
-        CONTROLLER["a"] = 0;
+    for(let key of VALID_CONTROLLER_KEYS)
+    {
+        if(e.key === key)
+            CONTROLLER[key] = 0;
+    }
 })
 
 canvas.addEventListener("mousedown", (e) => {
