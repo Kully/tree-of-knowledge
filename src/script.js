@@ -292,10 +292,10 @@ canvas.addEventListener("mousedown", (e) => {
             isInsideBox(
                 cursorX,
                 cursorY,
-                NODES[idx]["x"] - NODE_RADIUS - hitboxMargin,
-                NODES[idx]["x"] + NODE_RADIUS + hitboxMargin,
-                NODES[idx]["y"] - NODE_RADIUS - hitboxMargin,
-                NODES[idx]["y"] + NODE_RADIUS + hitboxMargin,
+                NODES[idx]["x"] - NODE_RADIUS - hitboxPadding,
+                NODES[idx]["x"] + NODE_RADIUS + hitboxPadding,
+                NODES[idx]["y"] - NODE_RADIUS - hitboxPadding,
+                NODES[idx]["y"] + NODE_RADIUS + hitboxPadding,
             )
         )
         {
