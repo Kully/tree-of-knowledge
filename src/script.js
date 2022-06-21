@@ -31,6 +31,7 @@ const CAMERA = {
 
 const CONTROLLER = {
     Meta: 0,
+    a: 0,
 }
 
 const STATE = { 
@@ -51,7 +52,7 @@ const NODES = [
         type: "default",
         x: CANVAS_WIDTH / 2,
         y: CANVAS_HEIGHT / 2,
-        nodeConnections: [1],
+        nodeConnections: [],
         clusterConnections: [],
     },
     {
@@ -60,7 +61,7 @@ const NODES = [
         type: "default",
         x: CANVAS_WIDTH / 2 + 60 * CANVAS_SCALE,
         y: CANVAS_HEIGHT / 2 - 14 * CANVAS_SCALE,
-        nodeConnections: [0],
+        nodeConnections: [],
         clusterConnections: [],
     },
 ];
@@ -69,7 +70,7 @@ function init_node(id, x, y, nodeConnections, clusterConnections)
 {
     return {
         id: id,
-        label: null,
+        label: "",
         type: "default",
         x: x,
         y: y,
@@ -85,7 +86,7 @@ function is_inside_box(x, y, box_x0, box_x1, box_y0, box_y1)
     return false;
 }
 
-function create_node(x, y)
+function createNode(x, y)
 {
     let new_id = NODES.length;
     let new_node = init_node(new_id, x, y, [], []);
@@ -232,6 +233,8 @@ draw_scene(NODES);
 window.addEventListener("keydown", (e) => {
     if(e.key === "Meta")
         CONTROLLER["Meta"] = 1;
+    if(e.key === "a")
+        CONTROLLER["a"] = 1;
 
     if(STATE["namingMode"] === true)
     {
@@ -266,12 +269,15 @@ window.addEventListener("keydown", (e) => {
             
         }
     }
+
     draw_scene(NODES);
 })
 
 window.addEventListener("keyup", (e) => {
     if(e.key === "Meta")
         CONTROLLER["Meta"] = 0;
+    if(e.key === "a")
+        CONTROLLER["a"] = 0;
 })
 
 canvas.addEventListener("mousedown", (e) => {
@@ -293,18 +299,12 @@ canvas.addEventListener("mousedown", (e) => {
         )
         {
             clickedAnyNode = true;
-            if(CONTROLLER["Meta"] === 1)
-                NODES[idx]["type"] = "selected";
-            else
-                NODES[idx]["type"] = "default";
+            NODES[idx]["type"] = "selected";
             STATE["lastClickedNode"] = idx;
-            draw_node(ctx, NODES[idx]);
             STATE["draggingNodeIndex"] = idx;
+            draw_node(ctx, NODES[idx]);
         }
-    }
-    if(clickedAnyNode === false && CONTROLLER["Meta"] !== 1)
-    {
-        for(let idx=0; idx<NODES.length; idx+=1)
+        else
         {
             NODES[idx]["type"] = "default";
         }
@@ -315,6 +315,19 @@ canvas.addEventListener("mousedown", (e) => {
         STATE["keysDownSinceNamingMode"] = 0;
         if(STATE["lastClickedNode"])
             NODES[STATE["lastClickedNode"]]["type"] = "default";
+
+        if(CONTROLLER["Meta"] !== 1)
+        {
+            for(let idx=0; idx<NODES.length; idx+=1)
+            {
+                NODES[idx]["type"] = "default";
+            }
+        }
+    }
+
+    if(CONTROLLER["a"] === 1)
+    {
+        createNode(cursorX, cursorY);
     }
 })
 
