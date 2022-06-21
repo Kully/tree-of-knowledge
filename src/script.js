@@ -285,16 +285,17 @@ canvas.addEventListener("mousedown", (e) => {
     let cursorY = e.offsetY * CANVAS_SCALE;
 
     let clickedAnyNode = false;
+    let hitboxPadding = 12 * CANVAS_SCALE;
     for(let idx=0; idx<NODES.length; idx+=1)
     {
         if(
             isInsideBox(
                 cursorX,
                 cursorY,
-                NODES[idx]["x"] - NODE_RADIUS,
-                NODES[idx]["x"] + NODE_RADIUS,
-                NODES[idx]["y"] - NODE_RADIUS,
-                NODES[idx]["y"] + NODE_RADIUS,
+                NODES[idx]["x"] - NODE_RADIUS - hitboxMargin,
+                NODES[idx]["x"] + NODE_RADIUS + hitboxMargin,
+                NODES[idx]["y"] - NODE_RADIUS - hitboxMargin,
+                NODES[idx]["y"] + NODE_RADIUS + hitboxMargin,
             )
         )
         {
