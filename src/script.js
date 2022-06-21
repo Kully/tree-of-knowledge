@@ -66,7 +66,7 @@ const NODES = [
     },
 ];
 
-function init_node(id, x, y, nodeConnections, clusterConnections)
+function createNodeObject(id, x, y, nodeConnections, clusterConnections)
 {
     return {
         id: id,
@@ -79,17 +79,17 @@ function init_node(id, x, y, nodeConnections, clusterConnections)
     }
 }
 
-function is_inside_box(x, y, box_x0, box_x1, box_y0, box_y1)
+function isInsideBox(x, y, box_x0, box_x1, box_y0, box_y1)
 {
     if(x >= box_x0 && x <= box_x1 && y >= box_y0 && y <= box_y1)
         return true;
     return false;
 }
 
-function createNode(x, y)
+function addNode(x, y)
 {
     let new_id = NODES.length;
-    let new_node = init_node(new_id, x, y, [], []);
+    let new_node = createNodeObject(new_id, x, y, [], []);
     NODES.push(new_node);
 }
 
@@ -99,7 +99,7 @@ function clear(canvas)
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 }
 
-function draw_line_between_two_nodes(node_a, node_b)
+function drawLineBetweenNodes(node_a, node_b)
 {
     ctx.beginPath();
     ctx.moveTo(
@@ -118,7 +118,7 @@ function draw_line_between_two_nodes(node_a, node_b)
 }
 
 
-function draw_node(ctx, node)
+function drawNode(ctx, node)
 {
     // outline and color in the node
     ctx.beginPath();
@@ -151,7 +151,7 @@ function draw_node(ctx, node)
     }
 }
 
-function draw_nodal_connections(NODES)
+function drawNodalConnections(NODES)
 {
     let alreadyTraversed = [];
     for(let idx=0; idx<NODES.length; idx+=1)
@@ -162,21 +162,21 @@ function draw_nodal_connections(NODES)
             {
                 let node_a = NODES[idx]
                 let node_b = NODES[id]
-                draw_line_between_two_nodes(node_a, node_b);
+                drawLineBetweenNodes(node_a, node_b);
                 alreadyTraversed.push(id);
             }
         }
     }
 }
 
-function draw_scene(NODES)
+function drawScene(NODES)
 {
     clear(canvas);
 
-    draw_nodal_connections(NODES);
+    drawNodalConnections(NODES);
 
     for(let node of NODES)
-        draw_node(ctx, node);
+        drawNode(ctx, node);
 
     if(STATE["drawingLineCoords"] !== null)
     {
@@ -226,7 +226,7 @@ canvas.style.width = BASE_CANVAS_WIDTH + "px";
 canvas.height = CANVAS_HEIGHT;
 canvas.width = CANVAS_WIDTH;
 
-draw_scene(NODES);
+drawScene(NODES);
 
 
 // save keyboard input
@@ -270,7 +270,7 @@ window.addEventListener("keydown", (e) => {
         }
     }
 
-    draw_scene(NODES);
+    drawScene(NODES);
 })
 
 window.addEventListener("keyup", (e) => {
@@ -288,7 +288,7 @@ canvas.addEventListener("mousedown", (e) => {
     for(let idx=0; idx<NODES.length; idx+=1)
     {
         if(
-            is_inside_box(
+            isInsideBox(
                 cursorX,
                 cursorY,
                 NODES[idx]["x"] - NODE_RADIUS,
@@ -302,7 +302,7 @@ canvas.addEventListener("mousedown", (e) => {
             NODES[idx]["type"] = "selected";
             STATE["lastClickedNode"] = idx;
             STATE["draggingNodeIndex"] = idx;
-            draw_node(ctx, NODES[idx]);
+            drawNode(ctx, NODES[idx]);
         }
         else
         {
@@ -327,7 +327,7 @@ canvas.addEventListener("mousedown", (e) => {
 
     if(CONTROLLER["a"] === 1)
     {
-        createNode(cursorX, cursorY);
+        addNode(cursorX, cursorY);
     }
 })
 
@@ -350,7 +350,7 @@ canvas.addEventListener("mousemove", (e) => {
         NODES[node_idx]["y"] = cursorY;
     }
 
-    draw_scene(NODES);
+    drawScene(NODES);
 })
 
 canvas.addEventListener("mouseup", (e) => {
@@ -361,7 +361,7 @@ canvas.addEventListener("mouseup", (e) => {
     STATE["drawingLineCoords"] = null
     STATE["draggingNodeIndex"] = null;
 
-    draw_scene(NODES);
+    drawScene(NODES);
 })
 
 canvas.addEventListener("wheel", function(e) {
@@ -382,7 +382,7 @@ canvas.addEventListener("dblclick", (e) => {
     for(let idx=0; idx<NODES.length; idx+=1)
     {
         if(
-            is_inside_box(
+            isInsideBox(
                 cursorX,
                 cursorY,
                 NODES[idx]["x"] - NODE_RADIUS,
@@ -398,5 +398,5 @@ canvas.addEventListener("dblclick", (e) => {
         }
     }
 
-    draw_scene(NODES);
+    drawScene(NODES);
 })
