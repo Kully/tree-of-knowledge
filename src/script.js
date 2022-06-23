@@ -34,15 +34,16 @@ let CONTROLLER = {};
 for(let key of VALID_CONTROLLER_KEYS)
     CONTROLLER[key] = 0;
 
-const STATE = { 
-    draggingNodeIndex: null,
+const STATE = {
     lassoMode: false,
-    drawingStartCoords: null,
+    namingMode: false,
+    panningMode: false,
     connectingMode: false,
+    draggingNodeIndex: null,
     lastClickedNode: null,
     lastDblClickedNode: null,
-    namingMode: false,
     keysDownSinceNamingMode: 0,
+    drawingStartCoords: null,
     cursorX: 0,
     cursorY: 0,
     lastCursorX: 0,
@@ -190,7 +191,7 @@ function drawScene(NODES)
         drawNode(ctx, node);
 
     // draw lasso selection
-    if(STATE["drawingStartCoords"] !== null)
+    if(STATE["lassoMode"] === true)
     {
         ctx.fillStyle = LASSO_STYLE["fillStyle"];
         ctx.strokeStyle = LASSO_STYLE["strokeStyle"];
@@ -243,18 +244,13 @@ window.addEventListener("keydown", (e) => {
             CONTROLLER[key] = 1;
     }
 
+    STATE["connectingMode"] = false;
     if(
         CONTROLLER["c"] === 1 &&
             STATE["lastClickedNode"] !== null &&
                 NODES[STATE["lastClickedNode"]]["type"] === "selected"
     )
-    {
         STATE["connectingMode"] = true;
-    }
-    else
-    {
-        STATE["connectingMode"] = false;
-    }
 
 
     if(STATE["namingMode"] === true)
@@ -310,6 +306,14 @@ window.addEventListener("keyup", (e) => {
 canvas.addEventListener("mousedown", (e) => {
     let cursorX = e.offsetX * CANVAS_SCALE;
     let cursorY = e.offsetY * CANVAS_SCALE;
+
+    if(e.button === 1)
+    {
+        STATE["panningMode"] = true;
+        STATE["drawingStartCoords"] = [cursorX, cursorY];
+        drawScene(NODES);
+        return 1;
+    }
 
     STATE["cursorX"] = cursorX;
     STATE["cursorY"] = cursorY;
@@ -402,6 +406,21 @@ canvas.addEventListener("mousemove", (e) => {
     STATE["cursorX"] = cursorX;
     STATE["cursorY"] = cursorY;
 
+    if(STATE["panningMode"] === true)
+    {
+        // pan all the nodes in the direction
+        for(let idx=0; idx<NODES.length; idx+=1)
+        {
+            NODES[idx]["x"] += STATE["cursorX"] - STATE["lastCursorX"];
+            NODES[idx]["y"] += STATE["cursorY"] - STATE["lastCursorY"];
+        }
+
+        STATE["lastCursorX"] = STATE["cursorX"];
+        STATE["lastCursorY"] = STATE["cursorY"];
+        drawScene(NODES);
+        return;
+    }
+
     for(let idx=0; idx<NODES.length; idx+=1)
     {
         // determine if node is inside the lasso selection
@@ -409,7 +428,6 @@ canvas.addEventListener("mousemove", (e) => {
         {
             let x0 = Math.min(STATE["drawingStartCoords"][0], cursorX);
             let x1 = Math.max(STATE["drawingStartCoords"][0], cursorX);
-
             let y0 = Math.min(STATE["drawingStartCoords"][1], cursorY);
             let y1 = Math.max(STATE["drawingStartCoords"][1], cursorY);
 
@@ -424,13 +442,9 @@ canvas.addEventListener("mousemove", (e) => {
             );
 
             if(nodeInsideLassoSelection)
-            {
                 NODES[idx]["type"] = "selected";
-            }
             else
-            {
                 NODES[idx]["type"] = "default";
-            }
         }
 
         if(
@@ -450,9 +464,10 @@ canvas.addEventListener("mousemove", (e) => {
 })
 
 canvas.addEventListener("mouseup", (e) => {
+    if(e.button === 1)
+        STATE["panningMode"] = false;
     if(STATE["draggingNodeIndex"] !== null)
         NODES[STATE["draggingNodeIndex"]]["color"] = NODE_STYLE_LOOKUP["default"]["nodeColor"];
-
     STATE["lassoMode"] = false;
     STATE["drawingStartCoords"] = null;
     STATE["draggingNodeIndex"] = null;
