@@ -309,11 +309,15 @@ canvas.addEventListener("mousedown", (e) => {
 
     if(e.button === 1)
     {
+        document.body.style.cursor = "all-scroll";
+
         STATE["panningMode"] = true;
         STATE["drawingStartCoords"] = [cursorX, cursorY];
         drawScene(NODES);
         return 1;
     }
+    if(e.button === 2)
+        return;
 
     STATE["cursorX"] = cursorX;
     STATE["cursorY"] = cursorY;
@@ -465,7 +469,10 @@ canvas.addEventListener("mousemove", (e) => {
 
 canvas.addEventListener("mouseup", (e) => {
     if(e.button === 1)
+    {
+        document.body.style.cursor = "default";
         STATE["panningMode"] = false;
+    }
     if(STATE["draggingNodeIndex"] !== null)
         NODES[STATE["draggingNodeIndex"]]["color"] = NODE_STYLE_LOOKUP["default"]["nodeColor"];
     STATE["lassoMode"] = false;
