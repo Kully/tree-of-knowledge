@@ -91,9 +91,14 @@ function addNode(x, y)
     NODES.push(new_node);
 }
 
-function isInsideBox(x, y, box_x0, box_x1, box_y0, box_y1)
+function isInsideBox(x, y, box_x, box_y, box_w, box_h, padding=0)
 {
-    if(x >= box_x0 && x <= box_x1 && y >= box_y0 && y <= box_y1)
+    if(
+        x >= box_x - padding &&
+        x <= (box_x + box_w) + padding &&
+        y >= box_y - padding &&
+        y <= (box_y + box_h) + padding
+    )
         return true;
     return false;
 }
@@ -315,10 +320,11 @@ canvas.addEventListener("mousedown", (e) => {
         let nodeInsideBox = isInsideBox(
             cursorX,
             cursorY,
-            NODES[idx]["x"] - NODE_RADIUS - hitboxPadding,
-            NODES[idx]["x"] + NODE_RADIUS + hitboxPadding,
-            NODES[idx]["y"] - NODE_RADIUS - hitboxPadding,
-            NODES[idx]["y"] + NODE_RADIUS + hitboxPadding,
+            NODES[idx]["x"] - NODE_RADIUS,
+            NODES[idx]["y"] - NODE_RADIUS,
+            2 * NODE_RADIUS,
+            2 * NODE_RADIUS,
+            hitboxPadding
         );
 
         if(nodeInsideBox)
@@ -410,11 +416,13 @@ canvas.addEventListener("mousemove", (e) => {
             let nodeInsideLassoSelection = isInsideBox(
                 NODES[idx]["x"],
                 NODES[idx]["y"],
-                x0 - hitboxPadding,
-                x1 + hitboxPadding,
-                y0 - hitboxPadding,
-                y1 + hitboxPadding,
+                x0,
+                y0,
+                x1 - x0,
+                y1 - y0,
+                hitboxPadding,
             );
+
             if(nodeInsideLassoSelection)
             {
                 NODES[idx]["type"] = "selected";
@@ -474,9 +482,9 @@ canvas.addEventListener("dblclick", (e) => {
                 cursorX,
                 cursorY,
                 NODES[idx]["x"] - NODE_RADIUS,
-                NODES[idx]["x"] + NODE_RADIUS,
                 NODES[idx]["y"] - NODE_RADIUS,
-                NODES[idx]["y"] + NODE_RADIUS,
+                2 * NODE_RADIUS,
+                2 * NODE_RADIUS,
             )
         )
         {
