@@ -9,13 +9,12 @@ import {
     CANVAS_COLOR,
     NODE_RADIUS,
     TEXT_FONT_SIZE,
-    HIGHLIGHT_COLOR,
     CLUSTER_LINE_DASH,
-    NODE_COLORS,
     NUMBERS_STR,
     ALPHABET_STR,
     CONNECTION_STYLE,
     POTENTIAL_CONNECTION_STYLE,
+    LASSO_STYLE,
     NODE_STYLE_LOOKUP,
     VALID_CONTROLLER_KEYS,
 } from "./constants.js"
@@ -37,9 +36,8 @@ for(let key of VALID_CONTROLLER_KEYS)
 
 const STATE = { 
     draggingNodeIndex: null,
-    drawingMode: false,
+    lassoMode: false,
     drawingStartCoords: null,
-    drawingLineCoords: null,
     connectingMode: false,
     lastClickedNode: null,
     lastDblClickedNode: null,
@@ -47,8 +45,11 @@ const STATE = {
     keysDownSinceNamingMode: 0,
     cursorX: 0,
     cursorY: 0,
+    lastCursorX: 0,
+    lastCursorY: 0,
 }
 
+const hitboxPadding = 12 * CANVAS_SCALE;
 const NODES = [
     {
         id: 0,
@@ -141,7 +142,7 @@ function drawNode(ctx, node)
     ctx.fill();
 
     // display the label
-    let textDeltaY = 12;
+    let labelShiftPixelsY = 14;
     if(node["label"] !== null && node["label"] !== "")
     {
         ctx.fillStyle = NODE_STYLE_LOOKUP[node["type"]]["labelColor"];
@@ -150,7 +151,7 @@ function drawNode(ctx, node)
         ctx.fillText(
             node["label"],
             node["x"],
-            node["y"] - NODE_RADIUS - textDeltaY
+            node["y"] - NODE_RADIUS - labelShiftPixelsY
         );
     }
 }
@@ -163,7 +164,6 @@ function drawNodalConnections(NODES)
         for(let id of NODES[idx]["nodeConnections"])
         {
             let nodePair = [Math.min(id, idx), Math.max(id, idx)];
-            console.log("nodePair is ", nodePair);
             if(!alreadyTraversed.includes(nodePair))
             {
                 let node_a = NODES[idx]
@@ -184,45 +184,22 @@ function drawScene(NODES)
     for(let node of NODES)
         drawNode(ctx, node);
 
-    if(STATE["drawingLineCoords"] !== null)
+    // draw lasso selection
+    if(STATE["drawingStartCoords"] !== null)
     {
-        // connect all points in drawn line
-        ctx.beginPath();
-        if(STATE["drawingLineCoords"].length <= 2)
-        {
-            ctx.moveTo(
-                STATE["drawingLineCoords"][0][0],
-                STATE["drawingLineCoords"][0][0],
-            )
-            ctx.lineTo(
-                STATE["drawingLineCoords"][1][0],
-                STATE["drawingLineCoords"][1][1],
-            )
-        }
-        else
-        {
-            for(let idx=0; idx<STATE["drawingLineCoords"].length-1; idx+=1)
-            {
-                ctx.moveTo(
-                    STATE["drawingLineCoords"][idx][0],
-                    STATE["drawingLineCoords"][idx][1],
-                )
-                ctx.lineTo(
-                    STATE["drawingLineCoords"][idx+1][0],
-                    STATE["drawingLineCoords"][idx+1][1],
-                )
-            }
-        }
-        // set path style
-        ctx.strokeStyle = HIGHLIGHT_COLOR;
-        if(ctx.setLineDash !== undefined)
-            ctx.setLineDash(CLUSTER_LINE_DASH);
-        if(ctx.mozDash !== undefined)
-            ctx.mozDash = CLUSTER_LINE_DASH;
-        ctx.stroke();
+        ctx.fillStyle = LASSO_STYLE["fillStyle"];
+        ctx.strokeStyle = LASSO_STYLE["strokeStyle"];
+        ctx.lineWidth = LASSO_STYLE["lineWidth"];
+
+        let x = STATE["drawingStartCoords"][0];
+        let y = STATE["drawingStartCoords"][1];
+        let w = STATE["cursorX"] - STATE["drawingStartCoords"][0];
+        let h = STATE["cursorY"] - STATE["drawingStartCoords"][1];
+        ctx.strokeRect(x, y, w, h);
+        ctx.fillRect(x, y, w, h);
     }
 
-    // display line from last clicked node to cursor
+    // display dotted line from last clicked node to mouse position
     if(STATE["connectingMode"] === true)
     {
         ctx.beginPath();
@@ -329,20 +306,22 @@ canvas.addEventListener("mousedown", (e) => {
     let cursorX = e.offsetX * CANVAS_SCALE;
     let cursorY = e.offsetY * CANVAS_SCALE;
 
+    STATE["cursorX"] = cursorX;
+    STATE["cursorY"] = cursorY;
+
     let clickedAnyNode = false;
-    let hitboxPadding = 12 * CANVAS_SCALE;
     for(let idx=0; idx<NODES.length; idx+=1)
     {
-        if(
-            isInsideBox(
-                cursorX,
-                cursorY,
-                NODES[idx]["x"] - NODE_RADIUS - hitboxPadding,
-                NODES[idx]["x"] + NODE_RADIUS + hitboxPadding,
-                NODES[idx]["y"] - NODE_RADIUS - hitboxPadding,
-                NODES[idx]["y"] + NODE_RADIUS + hitboxPadding,
-            )
-        )
+        let nodeInsideBox = isInsideBox(
+            cursorX,
+            cursorY,
+            NODES[idx]["x"] - NODE_RADIUS - hitboxPadding,
+            NODES[idx]["x"] + NODE_RADIUS + hitboxPadding,
+            NODES[idx]["y"] - NODE_RADIUS - hitboxPadding,
+            NODES[idx]["y"] + NODE_RADIUS + hitboxPadding,
+        );
+
+        if(nodeInsideBox)
         {
             clickedAnyNode = true;
             if(STATE["connectingMode"] === true)
@@ -371,31 +350,41 @@ canvas.addEventListener("mousedown", (e) => {
                 drawNode(ctx, NODES[idx]);
             }
         }
-        else
+
+        if(CONTROLLER["Meta"] === 0)
         {
             NODES[idx]["type"] = "default";
         }
     }
+
     if(clickedAnyNode === false)
     {
         STATE["namingMode"] = false;
         STATE["keysDownSinceNamingMode"] = 0;
-        if(STATE["lastClickedNode"])
-            NODES[STATE["lastClickedNode"]]["type"] = "default";
 
         if(CONTROLLER["Meta"] !== 1)
         {
-            for(let idx=0; idx<NODES.length; idx+=1)
+            for(let node of NODES)
             {
-                NODES[idx]["type"] = "default";
+                node["type"] = "default";
             }
         }
+        
+        if(CONTROLLER["a"] === 1 && STATE["connectingMode"] === false)
+        {
+            addNode(cursorX, cursorY);
+        }
+        else
+        {
+            // initialize lasso mode
+            STATE["lassoMode"] = true;
+            STATE["drawingStartCoords"] = [cursorX, cursorY];
+        }
+
     }
 
-    if(CONTROLLER["a"] === 1 && STATE["connectingMode"] === false)
-    {
-        addNode(cursorX, cursorY);
-    }
+    STATE["lastCursorX"] = STATE["cursorX"];
+    STATE["lastCursorY"] = STATE["cursorY"];
 
     drawScene(NODES);
 })
@@ -404,40 +393,60 @@ canvas.addEventListener("mousemove", (e) => {
     let cursorX = e.offsetX * CANVAS_SCALE;
     let cursorY = e.offsetY * CANVAS_SCALE;
 
-    // record mouse position relative to canvas
     STATE["cursorX"] = cursorX;
     STATE["cursorY"] = cursorY;
 
-    if(STATE["drawingMode"] === 1)
+    for(let idx=0; idx<NODES.length; idx+=1)
     {
-        // add current mouse location to drawing path
-        STATE["drawingLineCoords"].push(
-            [cursorX, cursorY]
-        );
-    }
-    else
-    if(STATE["draggingNodeIndex"] !== null)
-    {
-        let node_idx = STATE["draggingNodeIndex"];
-        NODES[node_idx]["x"] = cursorX;
-        NODES[node_idx]["y"] = cursorY;
+        // determine if node is inside the lasso selection
+        if(STATE["lassoMode"] === true)
+        {
+            let x0 = Math.min(STATE["drawingStartCoords"][0], cursorX);
+            let x1 = Math.max(STATE["drawingStartCoords"][0], cursorX);
+
+            let y0 = Math.min(STATE["drawingStartCoords"][1], cursorY);
+            let y1 = Math.max(STATE["drawingStartCoords"][1], cursorY);
+
+            let nodeInsideLassoSelection = isInsideBox(
+                NODES[idx]["x"],
+                NODES[idx]["y"],
+                x0 - hitboxPadding,
+                x1 + hitboxPadding,
+                y0 - hitboxPadding,
+                y1 + hitboxPadding,
+            );
+            if(nodeInsideLassoSelection)
+            {
+                NODES[idx]["type"] = "selected";
+            }
+            else
+            {
+                NODES[idx]["type"] = "default";
+            }
+        }
+
+        if(
+            STATE["draggingNodeIndex"] !== null &&
+                (NODES[idx]["type"] === "selected" || idx === STATE["draggingNodeIndex"])
+        )
+        {
+            NODES[idx]["x"] += (STATE["cursorX"] - STATE["lastCursorX"]);
+            NODES[idx]["y"] += (STATE["cursorY"] - STATE["lastCursorY"]);
+        }
     }
 
-    for(let idx=0; idx<NODES.length; idx += 1)
-    {
-        console.log("node ", idx, ", ", NODES[idx]["label"], ", ", NODES[idx]["nodeConnections"]);
-    }
-    console.log("");
+    STATE["lastCursorX"] = STATE["cursorX"];
+    STATE["lastCursorY"] = STATE["cursorY"];
 
     drawScene(NODES);
 })
 
 canvas.addEventListener("mouseup", (e) => {
     if(STATE["draggingNodeIndex"] !== null)
-        NODES[STATE["draggingNodeIndex"]]["color"] = NODE_COLORS["default"];
+        NODES[STATE["draggingNodeIndex"]]["color"] = NODE_STYLE_LOOKUP["default"]["nodeColor"];
 
-    STATE["drawingMode"] = 0;
-    STATE["drawingLineCoords"] = null
+    STATE["lassoMode"] = false;
+    STATE["drawingStartCoords"] = null;
     STATE["draggingNodeIndex"] = null;
 
     drawScene(NODES);
