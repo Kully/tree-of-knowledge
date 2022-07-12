@@ -283,7 +283,7 @@ window.addEventListener("keydown", (e) => {
                 STATE["keysDownSinceNamingMode"] += 1;
                 NODES[STATE["lastDblClickedNode"]]["label"] = newLabel;
             }
-            
+
         }
     }
 
