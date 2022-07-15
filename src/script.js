@@ -364,12 +364,14 @@ canvas.addEventListener("mousedown", (e) => {
                 drawNode(ctx, NODES[idx]);
             }
         }
-
+        else
         if(CONTROLLER["Meta"] === 0)
         {
             NODES[idx]["type"] = "default";
         }
     }
+
+
 
     if(clickedAnyNode === false)
     {
@@ -394,7 +396,6 @@ canvas.addEventListener("mousedown", (e) => {
             STATE["lassoMode"] = true;
             STATE["drawingStartCoords"] = [cursorX, cursorY];
         }
-
     }
 
     STATE["lastCursorX"] = STATE["cursorX"];
