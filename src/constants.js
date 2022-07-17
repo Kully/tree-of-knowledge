@@ -9,7 +9,9 @@ export const CANVAS_HEIGHT = BASE_CANVAS_HEIGHT * CANVAS_SCALE;
 export const NODE_RADIUS = 24;
 export const TEXT_FONT_SIZE = 34;
 export const CANVAS_COLOR = "#222";
-export const CLUSTER_LINE_DASH = [1, 1];
+
+export const INIT_NODE_LABEL = "NODE";
+export const INIT_CLUSTER_LABEL = "CLUSTER";
 
 export const CONNECTION_STYLE = {
     strokeStyle: "#FFFFFF44",
@@ -17,7 +19,7 @@ export const CONNECTION_STYLE = {
     lineDash: [0, 0],
 }
 export const POTENTIAL_CONNECTION_STYLE = {
-    strokeStyle: "#FFFFFF44",
+    strokeStyle: "#FFFFFF88",
     lineWidth: 1,
     lineDash: [8, 8],
 }
@@ -46,8 +48,13 @@ export const NODE_STYLE_LOOKUP = {
         labelColor: "#06BCC1",
     },
 }
+export const CLUSTER_STYLE_LOOKUP = {
+    strokeStyle: NODE_STYLE_LOOKUP["default"]["nodeColor"],
+    lineWidth: 2,
+    lineDash: [8, 16],
+}
 
 export const NUMBERS_STR = "1234567890";
 export const ALPHABET_STR = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-export const VALID_CONTROLLER_KEYS = ["Meta", "a", "c"];
+export const VALID_CONTROLLER_KEYS = ["Meta", "a", "c", "g"];

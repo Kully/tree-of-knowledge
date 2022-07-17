@@ -7,18 +7,19 @@ import {
     CANVAS_WIDTH,
     CANVAS_HEIGHT,
     CANVAS_COLOR,
+    INIT_NODE_LABEL,
+    INIT_CLUSTER_LABEL,
     NODE_RADIUS,
     TEXT_FONT_SIZE,
-    CLUSTER_LINE_DASH,
     NUMBERS_STR,
     ALPHABET_STR,
     CONNECTION_STYLE,
     POTENTIAL_CONNECTION_STYLE,
     LASSO_STYLE,
     NODE_STYLE_LOOKUP,
+    CLUSTER_STYLE_LOOKUP,
     VALID_CONTROLLER_KEYS,
 } from "./constants.js"
-
 
 const CAMERA = {
     x: 0,
@@ -71,25 +72,44 @@ const NODES = [
         clusterConnections: [],
     },
 ];
+const CLUSTERS = [];
 
-function createNodeObject(id, x, y, nodeConnections, clusterConnections)
+function initNodeObject(id, x, y, nodeConnections, clusterConnections)
 {
     return {
         id: id,
-        label: "",
+        label: INIT_NODE_LABEL,
         type: "default",
         x: x,
         y: y,
         nodeConnections: nodeConnections,
         clusterConnections: clusterConnections,
-    }
+    };
+}
+
+function initClusterObject(id, children)
+{
+    return {
+        id: id,
+        label: INIT_CLUSTER_LABEL,
+        children: children,
+    };
 }
 
 function addNode(x, y)
 {
     let new_id = NODES.length;
-    let new_node = createNodeObject(new_id, x, y, [], []);
+    let new_node = initNodeObject(new_id, x, y, [], []);
     NODES.push(new_node);
+}
+
+function getAverage(arr)
+{
+    let sum = 0;
+    arr.forEach(function(item, idx) {
+        sum += item
+    })
+    return sum / arr.length;
 }
 
 function isInsideBox(x, y, box_x, box_y, box_w, box_h, padding=0)
@@ -181,6 +201,58 @@ function drawNodalConnections(NODES)
     }
 }
 
+function drawClusters(NODES)
+{
+    for(let cluster of CLUSTERS)
+    {
+
+        let nodesOfCluster = [];
+        for(let nodeId of cluster["children"])
+        {
+            nodesOfCluster.push(NODES[nodeId]);
+        }
+
+        // compute the bounding box for given cluster
+        let nodeXArr = [];
+        let nodeYArr = [];
+        for(let node of nodesOfCluster)
+        {
+            nodeXArr.push(node["x"]);
+            nodeYArr.push(node["y"]);
+        }
+        let minNodeX = Math.min(...nodeXArr);
+        let maxNodeX = Math.max(...nodeXArr);
+        let minNodeY = Math.min(...nodeYArr);
+        let maxNodeY = Math.max(...nodeYArr);
+        minNodeX -= NODE_RADIUS;
+        maxNodeX += NODE_RADIUS;
+        minNodeY -= NODE_RADIUS;
+        maxNodeY += NODE_RADIUS;
+
+        let clusterX = Math.round( getAverage([minNodeX, maxNodeX]) );
+        let clusterY = Math.round( getAverage([minNodeY, maxNodeY]) );
+        let minClusterRadius = 140;
+        let rectRadius = Math.max(maxNodeY - minNodeY, maxNodeX - minNodeX) / 2;
+        let clusterRadius = Math.max(minClusterRadius, Math.sqrt(2) * rectRadius);
+
+        // draw circle
+        ctx.strokeStyle = CLUSTER_STYLE_LOOKUP["strokeStyle"];
+        ctx.lineWidth = CLUSTER_STYLE_LOOKUP["lineWidth"];
+        ctx.setLineDash(CLUSTER_STYLE_LOOKUP["lineDash"]);
+        ctx.beginPath();
+        ctx.arc(
+            Math.round( getAverage([minNodeX, maxNodeX]) ),
+            Math.round( getAverage([minNodeY, maxNodeY]) ),
+            clusterRadius,
+            0,
+            2 * Math.PI,
+            false,
+        );
+        ctx.stroke();
+    }
+
+}
+
 function drawScene(NODES)
 {
     clear(canvas);
@@ -189,6 +261,8 @@ function drawScene(NODES)
 
     for(let node of NODES)
         drawNode(ctx, node);
+
+    drawClusters(NODES);
 
     // draw lasso selection
     if(STATE["lassoMode"] === true)
@@ -286,6 +360,24 @@ window.addEventListener("keydown", (e) => {
 
         }
     }
+    else
+    if(CONTROLLER["g"] === 1 && STATE["connectingMode"] === false)
+    {
+        let nodeIdArray = [];
+        for(let node of NODES)
+        {
+            if(node["type"] === "selected")
+            {
+                nodeIdArray.push(node["id"]);
+            }
+        }
+
+        if(nodeIdArray.length > 0)
+        {
+            let newCluster = initClusterObject(CLUSTERS.length, nodeIdArray);
+            CLUSTERS.push(newCluster);
+        }
+    }
 
     drawScene(NODES);
 })
@@ -370,8 +462,6 @@ canvas.addEventListener("mousedown", (e) => {
             NODES[idx]["type"] = "default";
         }
     }
-
-
 
     if(clickedAnyNode === false)
     {
