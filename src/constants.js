@@ -7,7 +7,8 @@ export const CANVAS_WIDTH = BASE_CANVAS_WIDTH * CANVAS_SCALE;
 export const CANVAS_HEIGHT = BASE_CANVAS_HEIGHT * CANVAS_SCALE;
 
 export const NODE_RADIUS = 24;
-export const TEXT_FONT_SIZE = 34;
+export const NODE_LABEL_FONT_SIZE = 34;
+export const CLUSTER_LABEL_FONT_SIZE = 44;
 export const CANVAS_COLOR = "#222";
 
 export const INIT_NODE_LABEL = "node";
@@ -27,6 +28,7 @@ export const LASSO_STYLE = {
     fillStyle: "#FFFFFF11", 
     strokeStyle: "white",
     lineWidth: 2,
+    lineDash: [0, 0],
 }
 export const NODE_STYLE_LOOKUP = {
     default: {
@@ -52,6 +54,7 @@ export const CLUSTER_STYLE_LOOKUP = {
     strokeStyle: NODE_STYLE_LOOKUP["default"]["nodeColor"],
     lineWidth: 2,
     lineDash: [8, 16],
+    labelColor: NODE_STYLE_LOOKUP["default"]["nodeColor"],
 }
 
 export const NUMBERS_STR = "1234567890";

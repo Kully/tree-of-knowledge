@@ -10,7 +10,8 @@ import {
     INIT_NODE_LABEL,
     INIT_CLUSTER_LABEL,
     NODE_RADIUS,
-    TEXT_FONT_SIZE,
+    NODE_LABEL_FONT_SIZE,
+    CLUSTER_LABEL_FONT_SIZE,
     NUMBERS_STR,
     ALPHABET_STR,
     CONNECTION_STYLE,
@@ -52,6 +53,7 @@ const STATE = {
 }
 
 const hitboxPadding = 12 * CANVAS_SCALE;
+const labelShiftPixelsY = 14;
 const NODES = [
     {
         id: 0,
@@ -168,11 +170,10 @@ function drawNode(ctx, node)
     ctx.fill();
 
     // display the label
-    let labelShiftPixelsY = 14;
     if(node["label"] !== null && node["label"] !== "")
     {
         ctx.fillStyle = NODE_STYLE_LOOKUP[node["type"]]["labelColor"];
-        ctx.font = TEXT_FONT_SIZE + "px Bodoni";
+        ctx.font = NODE_LABEL_FONT_SIZE + "px Bodoni";
         ctx.textAlign = "center";
         ctx.fillText(
             node["label"],
@@ -250,13 +251,25 @@ function drawClusters(NODES)
         );
         ctx.stroke();
 
-        // draw rectangle
+        // // draw rectangle
         // ctx.strokeStyle = "orange";
         // ctx.lineWidth = 2;
         // ctx.setLineDash([1, 0])
         // ctx.strokeRect(minNodeX, minNodeY, maxNodeX - minNodeX, maxNodeY - minNodeY);
-    }
 
+        // display the label
+        if(cluster["label"] !== "")
+        {
+            ctx.fillStyle =  CLUSTER_STYLE_LOOKUP["labelColor"];
+            ctx.font = CLUSTER_LABEL_FONT_SIZE + "px Bodoni";
+            ctx.textAlign = "center";
+            ctx.fillText(
+                cluster["label"],
+                clusterX,      
+                clusterY - clusterRadius - labelShiftPixelsY,
+            );
+        }
+    }
 }
 
 function drawScene(NODES)
@@ -276,6 +289,7 @@ function drawScene(NODES)
         ctx.fillStyle = LASSO_STYLE["fillStyle"];
         ctx.strokeStyle = LASSO_STYLE["strokeStyle"];
         ctx.lineWidth = LASSO_STYLE["lineWidth"];
+        ctx.setLineDash(LASSO_STYLE["lineDash"]);
 
         let x = STATE["drawingStartCoords"][0];
         let y = STATE["drawingStartCoords"][1];
