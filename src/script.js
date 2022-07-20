@@ -249,6 +249,12 @@ function drawClusters(NODES)
             false,
         );
         ctx.stroke();
+
+        // draw rectangle
+        // ctx.strokeStyle = "orange";
+        // ctx.lineWidth = 2;
+        // ctx.setLineDash([1, 0])
+        // ctx.strokeRect(minNodeX, minNodeY, maxNodeX - minNodeX, maxNodeY - minNodeY);
     }
 
 }
@@ -297,6 +303,15 @@ function drawScene(NODES)
         ctx.setLineDash(POTENTIAL_CONNECTION_STYLE["lineDash"]);
         ctx.stroke();
     }
+
+    // update the cursor property
+    if(STATE["lassoMode"] === true)
+        document.body.style.cursor = "crosshair";
+    else
+    if(STATE["draggingNodeIndex"] !== null)
+        document.body.style.cursor = "all-scroll";
+    else
+        document.body.style.cursor = "default";
 }
 
 // setup canvas

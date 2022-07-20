@@ -10,8 +10,8 @@ export const NODE_RADIUS = 24;
 export const TEXT_FONT_SIZE = 34;
 export const CANVAS_COLOR = "#222";
 
-export const INIT_NODE_LABEL = "NODE";
-export const INIT_CLUSTER_LABEL = "CLUSTER";
+export const INIT_NODE_LABEL = "node";
+export const INIT_CLUSTER_LABEL = "cluster";
 
 export const CONNECTION_STYLE = {
     strokeStyle: "#FFFFFF44",
