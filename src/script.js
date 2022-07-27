@@ -446,7 +446,7 @@ canvas.addEventListener("mousedown", (e) => {
     let clickedAnyNode = false;
     for(let idx=0; idx<NODES.length; idx+=1)
     {
-        let nodeInsideBox = isInsideBox(
+        let cursorOverNode = isInsideBox(
             cursorX,
             cursorY,
             NODES[idx]["x"] - NODE_RADIUS,
@@ -456,7 +456,7 @@ canvas.addEventListener("mousedown", (e) => {
             hitboxPadding
         );
 
-        if(nodeInsideBox)
+        if(cursorOverNode)
         {
             clickedAnyNode = true;
             if(STATE["connectingMode"] === true)
